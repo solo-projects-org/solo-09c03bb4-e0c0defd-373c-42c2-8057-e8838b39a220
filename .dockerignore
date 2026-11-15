@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+examples/
+data/
+*.db
+*.db-wal
+*.db-shm
+Dockerfile
+docker-compose.yml

@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    container_name: vcf-compare
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_PATH: /data/vcf_compare.db
+    volumes:
+      - vcf_data:/data
+    restart: unless-stopped
+
+volumes:
+  vcf_data:

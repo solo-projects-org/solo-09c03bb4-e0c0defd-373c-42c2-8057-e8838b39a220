@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>上传新比对</h2>
+  <form action="/reports" method="post" enctype="multipart/form-data">
+    <p>参考序列 FASTA（单条染色体）：<br>
+      <input type="file" name="fasta" required></p>
+    <p>甲实验室 VCF（≤1000 条）：<br>
+      <input type="file" name="vcf_a" required></p>
+    <p>乙实验室 VCF（≤1000 条）：<br>
+      <input type="file" name="vcf_b" required></p>
+    <button type="submit">开始比对</button>
+  </form>
+  <p class="muted">仅接受 A/C/G/T 双等位 SNV 或纯插入缺失；REF 将与参考序列核对，
+    插入缺失按参考序列左对齐并去除共有前后缀，等价写法归为同一位点。
+    任一记录非法则整次比对失败。</p>
+</div>
+
+<div class="card">
+  <h2>历史报告</h2>
+  {% if reports %}
+  <table>
+    <tr>
+      <th>ID</th><th>提交时间</th><th>状态</th><th>参考序列</th>
+      <th>甲文件</th><th>乙文件</th>
+      <th>共有</th><th>甲独有</th><th>乙独有</th><th></th>
+    </tr>
+    {% for r in reports %}
+    <tr>
+      <td>{{ r["id"] }}</td>
+      <td>{{ r["created_at"] }}</td>
+      <td>{% if r["status"] == "done" %}<span class="badge ok">完成</span>{% else %}<span class="badge fail">失败</span>{% endif %}</td>
+      <td>{% if r["ref_name"] %}{{ r["ref_name"] }} ({{ r["ref_length"] }} bp){% else %}-{% endif %}</td>
+      <td>{{ r["vcf_a_filename"] or "-" }}</td>
+      <td>{{ r["vcf_b_filename"] or "-" }}</td>
+      <td>{% if r["status"] == "done" %}{{ r["n_common"] }}{% else %}-{% endif %}</td>
+      <td>{% if r["status"] == "done" %}{{ r["n_a_only"] }}{% else %}-{% endif %}</td>
+      <td>{% if r["status"] == "done" %}{{ r["n_b_only"] }}{% else %}-{% endif %}</td>
+      <td><a href="/reports/{{ r["id"] }}">查看</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">还没有报告，请先上传文件。</p>
+  {% endif %}
+</div>
+{% endblock %}

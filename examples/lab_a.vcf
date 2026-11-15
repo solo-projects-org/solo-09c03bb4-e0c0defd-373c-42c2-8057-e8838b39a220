@@ -1,0 +1,10 @@
+##fileformat=VCFv4.2
+##reference=chrT
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chrT	4	.	A	G	.	.	.
+chrT	13	.	A	AA	.	.	.
+chrT	11	.	AA	A	.	.	.
+chrT	20	.	A	C	.	.	.
+chrT	30	.	G	GT	.	.	.
+chrT	30	.	GT	GTT	.	.	.
+chrT	40	.	A	T	.	.	.

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}报告 #{{ report["id"] }} - 肿瘤变异位点比对{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>报告 #{{ report["id"] }}
+    {% if report["status"] == "done" %}<span class="badge ok">完成</span>{% else %}<span class="badge fail">失败</span>{% endif %}
+  </h2>
+  <dl class="meta">
+    <dt>提交时间</dt><dd>{{ report["created_at"] }}</dd>
+    <dt>参考序列</dt><dd>{% if report["ref_name"] %}{{ report["ref_name"] }}，{{ report["ref_length"] }} bp，sha256 {{ report["ref_sha256"][:16] }}…{% else %}-（解析失败）{% endif %}</dd>
+    <dt>FASTA 文件</dt><dd>{{ report["fasta_filename"] or "-" }}</dd>
+    <dt>甲 VCF 文件</dt><dd>{{ report["vcf_a_filename"] or "-" }}</dd>
+    <dt>乙 VCF 文件</dt><dd>{{ report["vcf_b_filename"] or "-" }}</dd>
+  </dl>
+  {% if report["status"] == "failed" %}
+  <h2>失败原因</h2>
+  <div class="error-box">{{ report["error"] }}</div>
+  {% endif %}
+</div>
+
+{% if report["status"] == "done" %}
+{% for sec in sections %}
+<div class="card">
+  <h2>{{ sec.title }}（{{ sec.rows | length }}）</h2>
+  {% if sec.rows %}
+  <table>
+    <tr>
+      <th>位置</th><th>类型</th><th>REF</th><th>ALT</th>
+      {% if sec.key != "b_only" %}<th>甲 VCF 行号</th>{% endif %}
+      {% if sec.key != "a_only" %}<th>乙 VCF 行号</th>{% endif %}
+    </tr>
+    {% for v in sec.rows %}
+    <tr>
+      <td>{{ v.pos }}</td>
+      <td>{{ v.kind }}</td>
+      <td>{{ v.ref }}</td>
+      <td>{{ v.alt }}</td>
+      {% if sec.key != "b_only" %}<td>{{ v.lines_a }}</td>{% endif %}
+      {% if sec.key != "a_only" %}<td>{{ v.lines_b }}</td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">无</p>
+  {% endif %}
+</div>
+{% endfor %}
+<p class="muted">位点为归一化表示：已去除共有前后缀并按参考序列左对齐；
+插入的 REF 显示为 “-”（表示在所示位置之前插入），缺失的 ALT 显示为 “-”。</p>
+{% endif %}
+{% endblock %}
