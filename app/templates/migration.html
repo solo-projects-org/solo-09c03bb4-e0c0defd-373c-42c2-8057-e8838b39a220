@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}迁移报告 #{{ migration["id"] }} - 肿瘤变异位点比对{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>迁移报告 #{{ migration["id"] }} <span class="badge ok">完成</span></h2>
+  <dl class="meta">
+    <dt>迁移时间</dt><dd>{{ migration["created_at"] }}</dd>
+    <dt>源报告</dt><dd><a href="/reports/{{ migration["source_report_id"] }}">报告 #{{ migration["source_report_id"] }}</a></dd>
+    <dt>旧参考序列</dt><dd>{{ migration["old_ref_name"] }}，{{ migration["old_ref_length"] }} bp，sha256 {{ migration["old_ref_sha256"][:16] }}…</dd>
+    <dt>新参考序列</dt><dd>{{ migration["new_ref_name"] }}，{{ migration["new_ref_length"] }} bp，sha256 {{ migration["new_ref_sha256"][:16] }}…</dd>
+    <dt>映射</dt><dd>{{ migration["n_blocks"] }} 个映射块，内容摘要 {{ migration["mapping_sha256"][:16] }}…</dd>
+  </dl>
+</div>
+
+{% for sec in sections %}
+<div class="card">
+  <h2>{{ sec.title }}（{{ sec.rows | length }}）</h2>
+  {% if sec.rows %}
+  <table>
+    <tr>
+      <th>新位置</th><th>REF</th><th>ALT</th><th>原位置</th>
+      {% if sec.key != "b_only" %}<th>甲 VCF 行号</th>{% endif %}
+      {% if sec.key != "a_only" %}<th>乙 VCF 行号</th>{% endif %}
+    </tr>
+    {% for v in sec.rows %}
+    <tr>
+      <td>{{ v.pos }}</td>
+      <td>{{ v.ref }}</td>
+      <td>{{ v.alt }}</td>
+      <td>{{ v.src_pos }}</td>
+      {% if sec.key != "b_only" %}<td>{{ v.lines_a }}</td>{% endif %}
+      {% if sec.key != "a_only" %}<td>{{ v.lines_b }}</td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">无</p>
+  {% endif %}
+</div>
+{% endfor %}
+<p class="muted">坐标为新参考序列上的 1 基位置；负向映射块的 REF/ALT 已取反向互补，
+并与新参考序列逐位点核对一致。归类与行号沿用源报告。</p>
+{% endblock %}

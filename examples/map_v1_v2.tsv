@@ -1,0 +1,4 @@
+src_start	src_end	dst_start	dst_end	strand
+1	20	1	20	+
+21	40	21	40	-
+41	64	41	64	+

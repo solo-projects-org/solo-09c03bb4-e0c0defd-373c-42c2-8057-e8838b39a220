@@ -9,7 +9,9 @@
            margin: 0; background: #f5f6f8; color: #222; }
     header { background: #1f3a5f; color: #fff; padding: 14px 24px; }
     header a { color: #fff; text-decoration: none; }
-    header h1 { font-size: 18px; margin: 0; }
+    header h1 { font-size: 18px; margin: 0; display: inline-block; }
+    header nav { display: inline-block; margin-left: 24px; font-size: 14px; }
+    header nav a { margin-right: 14px; text-decoration: underline; }
     main { max-width: 1080px; margin: 24px auto; padding: 0 16px; }
     .card { background: #fff; border: 1px solid #e2e5ea; border-radius: 8px;
             padding: 18px 20px; margin-bottom: 20px; }
@@ -33,7 +35,10 @@
   </style>
 </head>
 <body>
-  <header><h1><a href="/">肿瘤变异位点比对</a></h1></header>
+  <header>
+    <h1><a href="/">肿瘤变异位点比对</a></h1>
+    <nav><a href="/">比对</a><a href="/migrate">坐标迁移</a></nav>
+  </header>
   <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

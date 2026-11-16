@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}坐标迁移 - 肿瘤变异位点比对{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>SNV 坐标迁移</h2>
+  {% if error %}
+  <div class="error-box">{{ error }}</div>
+  {% endif %}
+  {% if reports %}
+  <form action="/migrate" method="post" enctype="multipart/form-data">
+    <p>源报告（已完成、含 SNV 且无插入缺失）：<br>
+      <select name="source_report_id" required>
+        {% for r in reports %}
+        <option value="{{ r["id"] }}">#{{ r["id"] }} — {{ r["created_at"] }} —
+          {{ r["ref_name"] }}（{{ r["ref_length"] }} bp）—
+          甲 {{ r["vcf_a_filename"] }} / 乙 {{ r["vcf_b_filename"] }} —
+          {{ r["n_snv"] }} 个 SNV</option>
+        {% endfor %}
+      </select></p>
+    <p>旧参考序列 FASTA（SHA-256 须与源报告一致）：<br>
+      <input type="file" name="old_fasta" required></p>
+    <p>新参考序列 FASTA（单条染色体）：<br>
+      <input type="file" name="new_fasta" required></p>
+    <p>映射 TSV：<br>
+      <input type="file" name="mapping" required></p>
+    <button type="submit">开始迁移</button>
+  </form>
+  {% else %}
+  <p class="muted">暂无符合条件的源报告。请先在<a href="/">首页</a>完成一次
+    只含 SNV 的比对。</p>
+  {% endif %}
+  <p class="muted">映射 TSV 每行 5 列（制表符分隔）：src_start、src_end、dst_start、
+    dst_end（均为 1 基闭区间）、strand（+/-）；允许空行、# 注释与一个表头行。
+    映射块须等长、源/目标两侧各自不重叠；逐位点唯一映射，负向块的 REF/ALT
+    取反向互补并与新参考核对。任一位点无映射或核对失败则不生成迁移报告；
+    同一源报告、目标序列与映射内容的重复提交返回同一份迁移报告。</p>
+</div>
+
+<div class="card">
+  <h2>历史迁移报告</h2>
+  {% if migrations %}
+  <table>
+    <tr>
+      <th>ID</th><th>迁移时间</th><th>源报告</th><th>新参考序列</th>
+      <th>映射块</th><th>迁移位点</th><th></th>
+    </tr>
+    {% for m in migrations %}
+    <tr>
+      <td>{{ m["id"] }}</td>
+      <td>{{ m["created_at"] }}</td>
+      <td><a href="/reports/{{ m["source_report_id"] }}">#{{ m["source_report_id"] }}</a></td>
+      <td>{{ m["new_ref_name"] }} ({{ m["new_ref_length"] }} bp)</td>
+      <td>{{ m["n_blocks"] }}</td>
+      <td>{{ m["n_sites"] }}</td>
+      <td><a href="/migrations/{{ m["id"] }}">查看</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">还没有迁移报告。</p>
+  {% endif %}
+</div>
+{% endblock %}

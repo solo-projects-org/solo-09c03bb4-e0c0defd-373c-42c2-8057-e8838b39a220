@@ -33,6 +33,31 @@ pytest tests/
 
 `examples/` 目录有一组可直接上传的示例文件（`ref.fa` + `lab_a.vcf` / `lab_b.vcf`，
 以及一份含非法 REF 的 `lab_bad.vcf` 用于演示失败）。
+坐标迁移示例：`lab_a_snv.vcf` / `lab_b_snv.vcf`（仅 SNV，先与 `ref.fa` 比对生成
+源报告），再用 `ref.fa`（旧）+ `ref_v2.fa`（新）+ `map_v1_v2.tsv`（映射）提交迁移。
+
+## 坐标迁移
+
+实验室换用新版参考序列后，在「坐标迁移」页把旧报告里的 SNV 坐标迁到新参考上核对：
+
+1. 选择**源报告**：须为已完成、含 SNV 且无插入缺失的报告；
+2. 上传**旧参考 FASTA**（SHA-256 须与源报告记录的参考摘要一致）、
+   **新参考 FASTA**（单条染色体）和**映射 TSV**；
+3. 映射 TSV 每行 5 列（制表符分隔）：`src_start src_end dst_start dst_end strand`，
+   区间为 1 基闭区间，`strand` 为 `+`/`-`；允许空行、`#` 注释行，
+   第一个有效行若前 4 列不全是正整数则视为表头跳过。
+
+**校验与映射规则**（任一不满足 → 不生成迁移报告，旧报告不变）：
+
+- 映射块源/目标区间等长，且两侧各自两两不重叠；
+- 逐位点唯一映射：正向块新坐标 = `dst_start + (pos - src_start)`；
+  负向块新坐标 = `dst_end - (pos - src_start)`，且 REF/ALT 取反向互补；
+- 迁移后的 REF 与新参考序列逐位点核对，不符即整体失败。
+
+成功的迁移报告保留源报告的甲乙归类与 VCF 原行号，标明源报告与新旧参考摘要。
+同一源报告、同一目标序列、同一映射内容（按规范化块文本计，与行序/表头无关）
+的重复提交返回同一份迁移报告；并发提交也不会产生重复或半份报告
+（`migrations.dedup_key` 唯一约束 + 单事务写入）。
 
 ## 比对规则
 
@@ -67,10 +92,11 @@ pytest tests/
 ```
 app/
   compare.py    # FASTA/VCF 解析、REF 核对、左对齐归一化、集合比较（纯逻辑）
-  db.py         # SQLite 存取（WAL、单事务写入）
+  migrate.py    # 映射 TSV 解析校验、链向感知坐标映射、反向互补、目标 REF 核对（纯逻辑）
+  db.py         # SQLite 存取（WAL、单事务写入、迁移去重）
   main.py       # FastAPI 路由与页面渲染
-  templates/    # 上传表单、报告列表、报告详情
-tests/          # 单元测试 + 网页集成测试 + 并发隔离测试
-examples/       # 示例参考序列与 VCF
+  templates/    # 上传表单、报告列表、报告详情、迁移页、迁移报告详情
+tests/          # 单元测试 + 网页集成测试 + 并发隔离/去重测试
+examples/       # 示例参考序列、VCF 与迁移映射
 Dockerfile / docker-compose.yml
 ```
